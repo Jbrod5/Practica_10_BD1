@@ -175,18 +175,17 @@ export class OrdenTrabajoService {
             const orden = ordenRepository.create(datosConFecha);
             const ordenGuardada = await ordenRepository.save(orden);
 
-            // segundo cambio: intentar actualizar un servicio que no existe para forzar error
-            const servicio = await servicioRepository.findOne({
-                where: { id: servicioInexistenteId },
-            });
+            // segundo cambio: intentar actualizar un servicio que no existe
+            // usar update directamente para forzar el error y provocar rollback
+            const resultadoUpdate = await servicioRepository.update(
+                { id: servicioInexistenteId },
+                { precio: nuevoPrecio },
+            );
 
-            // verificar que el servicio exista, si no lanzar error para rollback
-            if (!servicio) {
+            // verificar si el update afecto alguna fila
+            if (!resultadoUpdate.affected) {
                 throw new NotFoundException('No existe el servicio con id ' + servicioInexistenteId);
             }
-
-            servicio.precio = nuevoPrecio;
-            await servicioRepository.save(servicio);
 
             return ordenGuardada;
         });
