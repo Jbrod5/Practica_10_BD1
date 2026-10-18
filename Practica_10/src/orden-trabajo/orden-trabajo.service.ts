@@ -116,12 +116,19 @@ export class OrdenTrabajoService {
         createOrdenTrabajoDto: CreateOrdenTrabajoDto,
         nuevoPrecio: number,
     ): Promise<OrdenTrabajo> {
+        // verificar si se proporcionó fecha, si no usar la fecha actual
+        const fechaCreacion: string = createOrdenTrabajoDto.fecha ?? new Date().toISOString().split('T')[0];
+        const datosConFecha = {
+            ...createOrdenTrabajoDto,
+            fecha: fechaCreacion,
+        };
+
         return await this.dataSource.transaction(async (manager) => {
             const ordenRepository = manager.getRepository(OrdenTrabajo);
             const servicioRepository = manager.getRepository(Servicio);
 
             // primer cambio: crear la orden de trabajo dentro de la transaccion
-            const orden = ordenRepository.create(createOrdenTrabajoDto);
+            const orden = ordenRepository.create(datosConFecha);
             const ordenGuardada = await ordenRepository.save(orden);
 
             // segundo cambio: actualizar el precio del servicio asociado
@@ -150,12 +157,19 @@ export class OrdenTrabajoService {
         createOrdenTrabajoDto: CreateOrdenTrabajoDto,
         nuevoPrecio: number,
     ): Promise<OrdenTrabajo> {
+        // verificar si se proporcionó fecha, si no usar la fecha actual
+        const fechaCreacion: string = createOrdenTrabajoDto.fecha ?? new Date().toISOString().split('T')[0];
+        const datosConFecha = {
+            ...createOrdenTrabajoDto,
+            fecha: fechaCreacion,
+        };
+
         return await this.dataSource.transaction(async (manager) => {
             const ordenRepository = manager.getRepository(OrdenTrabajo);
             const servicioRepository = manager.getRepository(Servicio);
 
             // primer cambio: crear la orden de trabajo dentro de la transaccion
-            const orden = ordenRepository.create(createOrdenTrabajoDto);
+            const orden = ordenRepository.create(datosConFecha);
             const ordenGuardada = await ordenRepository.save(orden);
 
             // buscar el servicio con el id proporcionado (si no existe, falla)
