@@ -20,7 +20,7 @@ import { OrdenTrabajo } from './orden-trabajo/entities/orden-trabajo.entity.js';
       host: process.env.DB_HOST ?? 'localhost',
       port: Number(process.env.DB_PORT ?? 5432),
       username: process.env.DB_USER ?? 'postgres',
-      password: process.env.DB_PASS ?? 'password',
+      password: process.env.DB_PASS ?? 'tu_password',
       database: process.env.DB_NAME ?? 'taller_mecanico',
       entities: [Cliente, Mecanico, Servicio, Vehiculo, OrdenTrabajo],
       synchronize: true,

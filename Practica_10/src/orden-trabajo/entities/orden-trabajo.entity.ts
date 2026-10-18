@@ -1,4 +1,5 @@
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import type { Relation } from 'typeorm';
 import { Vehiculo } from '../../vehiculo/entities/vehiculo.entity.js';
 import { Mecanico } from '../../mecanico/entities/mecanico.entity.js';
 import { Servicio } from '../../servicio/entities/servicio.entity.js';
@@ -21,15 +22,16 @@ export class OrdenTrabajo {
     @Column({ type: 'integer', name: 'servicio_id' })
     servicioId: number;
 
+    // usar Relation para evitar imports circulares entre entidades
     @ManyToOne(() => Vehiculo, (vehiculo) => vehiculo.ordenesTrabajo)
     @JoinColumn({ name: 'vehiculo_id' })
-    vehiculo: Vehiculo;
+    vehiculo: Relation<Vehiculo>;
 
     @ManyToOne(() => Mecanico, (mecanico) => mecanico.ordenesTrabajo)
     @JoinColumn({ name: 'mecanico_id' })
-    mecanico: Mecanico;
+    mecanico: Relation<Mecanico>;
 
     @ManyToOne(() => Servicio, (servicio) => servicio.ordenesTrabajo)
     @JoinColumn({ name: 'servicio_id' })
-    servicio: Servicio;
+    servicio: Relation<Servicio>;
 }

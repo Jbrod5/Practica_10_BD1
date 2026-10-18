@@ -1,4 +1,5 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import type { Relation } from 'typeorm';
 import { Vehiculo } from '../../vehiculo/entities/vehiculo.entity.js';
 
 @Entity({ name: 'cliente', schema: 'public' })
@@ -16,6 +17,7 @@ export class Cliente {
     @Column({ type: 'varchar', length: 100, nullable: true })
     correo: string;
 
+    // usar Relation para evitar imports circulares entre entidades
     @OneToMany(() => Vehiculo, (vehiculo) => vehiculo.cliente)
-    vehiculos: Vehiculo[];
+    vehiculos: Relation<Vehiculo[]>;
 }
