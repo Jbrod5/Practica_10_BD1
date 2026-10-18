@@ -73,18 +73,21 @@ export class OrdenTrabajoController {
     }
 
     /**
-     * Crear una orden con servicio inexistente para provocar rollback.
-     * @param createOrdenTrabajoDto Datos de la orden a crear.
-     * @param nuevoPrecio Nuevo precio para el servicio asociado.
+     * Crear una orden y fallar el segundo cambio para provocar rollback.
+     * @param createOrdenTrabajoDto Datos de la orden a crear (con servicioId valido).
+     * @param servicioInexistenteId Id de servicio que no existe para forzar el error.
+     * @param nuevoPrecio Nuevo precio para el servicio inexistente.
      * @returns Error 404 que provoca el rollback de la transaccion.
      */
     @Post('transaccion-fallida')
     crearOrdenConTransaccionFallida(
         @Body() createOrdenTrabajoDto: CreateOrdenTrabajoDto,
+        @Query('servicioInexistenteId') servicioInexistenteId: string,
         @Query('nuevoPrecio') nuevoPrecio: string,
     ) {
         return this.ordenTrabajoService.crearOrdenConTransaccionFallida(
             createOrdenTrabajoDto,
+            +servicioInexistenteId,
             +nuevoPrecio,
         );
     }

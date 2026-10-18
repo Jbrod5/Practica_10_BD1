@@ -149,12 +149,15 @@ export class OrdenTrabajoService {
     }
 
     /**
-     * Crear una orden con un servicio inexistente para provocar rollback.
+     * Crear una orden y fallar el segundo cambio para provocar rollback.
      * @param createOrdenTrabajoDto Datos de la orden a crear.
-     * @returns La orden creada o error si el servicio no existe.
+     * @param servicioInexistenteId Id de servicio que no existe para forzar el error.
+     * @param nuevoPrecio Nuevo precio para el servicio inexistente.
+     * @returns La orden creada o error que provoca el rollback.
      */
     async crearOrdenConTransaccionFallida(
         createOrdenTrabajoDto: CreateOrdenTrabajoDto,
+        servicioInexistenteId: number,
         nuevoPrecio: number,
     ): Promise<OrdenTrabajo> {
         // verificar si se proporcionó fecha, si no usar la fecha actual
@@ -168,18 +171,18 @@ export class OrdenTrabajoService {
             const ordenRepository = manager.getRepository(OrdenTrabajo);
             const servicioRepository = manager.getRepository(Servicio);
 
-            // primer cambio: crear la orden de trabajo dentro de la transaccion
+            // primer cambio: crear la orden de trabajo dentro de la transaccion (este es exitoso)
             const orden = ordenRepository.create(datosConFecha);
             const ordenGuardada = await ordenRepository.save(orden);
 
-            // buscar el servicio con el id proporcionado (si no existe, falla)
+            // segundo cambio: intentar actualizar un servicio que no existe para forzar error
             const servicio = await servicioRepository.findOne({
-                where: { id: createOrdenTrabajoDto.servicioId },
+                where: { id: servicioInexistenteId },
             });
 
             // verificar que el servicio exista, si no lanzar error para rollback
             if (!servicio) {
-                throw new NotFoundException('No existe el servicio con id ' + createOrdenTrabajoDto.servicioId);
+                throw new NotFoundException('No existe el servicio con id ' + servicioInexistenteId);
             }
 
             servicio.precio = nuevoPrecio;
