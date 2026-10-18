@@ -21,7 +21,13 @@ export class OrdenTrabajoService {
      * @returns La orden creada con su id generado.
      */
     async create(createOrdenTrabajoDto: CreateOrdenTrabajoDto): Promise<OrdenTrabajo> {
-        const orden = this.ordenTrabajoRepository.create(createOrdenTrabajoDto);
+        // verificar si se proporcionó fecha, si no usar la fecha actual
+        const fechaCreacion: string = createOrdenTrabajoDto.fecha ?? new Date().toISOString().split('T')[0];
+
+        const orden = this.ordenTrabajoRepository.create({
+            ...createOrdenTrabajoDto,
+            fecha: fechaCreacion,
+        });
         return await this.ordenTrabajoRepository.save(orden);
     }
 
@@ -124,6 +130,40 @@ export class OrdenTrabajoService {
             });
 
             // verificar que el servicio exista para poder actualizarlo
+            if (!servicio) {
+                throw new NotFoundException('No existe el servicio con id ' + createOrdenTrabajoDto.servicioId);
+            }
+
+            servicio.precio = nuevoPrecio;
+            await servicioRepository.save(servicio);
+
+            return ordenGuardada;
+        });
+    }
+
+    /**
+     * Crear una orden con un servicio inexistente para provocar rollback.
+     * @param createOrdenTrabajoDto Datos de la orden a crear.
+     * @returns La orden creada o error si el servicio no existe.
+     */
+    async crearOrdenConTransaccionFallida(
+        createOrdenTrabajoDto: CreateOrdenTrabajoDto,
+        nuevoPrecio: number,
+    ): Promise<OrdenTrabajo> {
+        return await this.dataSource.transaction(async (manager) => {
+            const ordenRepository = manager.getRepository(OrdenTrabajo);
+            const servicioRepository = manager.getRepository(Servicio);
+
+            // primer cambio: crear la orden de trabajo dentro de la transaccion
+            const orden = ordenRepository.create(createOrdenTrabajoDto);
+            const ordenGuardada = await ordenRepository.save(orden);
+
+            // buscar el servicio con el id proporcionado (si no existe, falla)
+            const servicio = await servicioRepository.findOne({
+                where: { id: createOrdenTrabajoDto.servicioId },
+            });
+
+            // verificar que el servicio exista, si no lanzar error para rollback
             if (!servicio) {
                 throw new NotFoundException('No existe el servicio con id ' + createOrdenTrabajoDto.servicioId);
             }
